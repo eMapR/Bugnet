@@ -52,7 +52,9 @@ def make_output_blanks(inputFtv, outPuts, adj):
 
 
 def get_info(name, eeFile=False):
+  print(name)
   pieces = name.split('-')
+  print(pieces)
   if eeFile:
     pieces = pieces[0:8]
     crs = pieces[7]
@@ -70,7 +72,10 @@ def get_info(name, eeFile=False):
             'version':pieces[6],
             'name': '-'.join(pieces[2:])}
   else:
-    pieces = pieces[0:7]
+    pieces = pieces[0:6]
+    crs = pieces[5]
+    crs = crs[0:4]+':'+crs[4:]
+    print(pieces)
     info = {#'key': pieces[0],
             #'value': pieces[1],
             'indexID': pieces[0],
@@ -80,7 +85,9 @@ def get_info(name, eeFile=False):
             'startDay':pieces[3][0:4],
             'endDay':pieces[3][4:8],
             'version':pieces[4],
+            'crs':crs,
             'name': '-'.join(pieces[2:])}
+  print(info)
   return info
 
  

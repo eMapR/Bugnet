@@ -22,7 +22,7 @@ import ltcdb
 
 # get the head folder
 #headDir = ltcdb.get_dir("Select the project head folder", scriptDname)
-headDir = "/vol/v1/proj/FS_Agent_Classifier/region6/002/ForestServiceAgentDetection/allR_BlueMountains/ltChange_project_blueAll_1990_2021/"
+headDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace/"
 
 ltcdb.is_headDir(headDir)
 

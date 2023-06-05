@@ -3,28 +3,28 @@
 // ###############################################################################
 
 // define external parameters
-var featureCol = 'users/emaprlab/ADS/eco_l3_11_blueMt'; // provide the path to aoi asset
-var featureKey = 'id'; // provide the feature attribute that will define the study area
-var featureValue = '0'; // what unique value from the above attribute field defines the study area
-var runName = 'v3'; // a version name to identify the run; it should NOT include a dash/hyphen (-) 
-var gDriveFolder = 'wallowa_'; // what is the name of the Google Drive folder that you want the outputs placed in
-var startYear = 1990; // what year do you want to start the time series 
-var endYear = 2021; // what year do you want to end the time series
-var startDay = '06-01'; // what should the beginning date of annual composite be | month-day 06-01
-var endDay =   '09-30'; // what should the ending date of annual composite be | month-day 09-30
+var featureCol = 'users/clarype/bugnet_aoi_coast_range'; // provide the path to aoi asset
+//var featureKey = 'id'; // provide the feature attribute that will define the study area
+//var featureValue = '0'; // what unique value from the above attribute field defines the study area
+var runName = 'v1'; // a version name to identify the run; it should NOT include a dash/hyphen (-) 
+var gDriveFolder = 'bugnet_coast_range'; // what is the name of the Google Drive folder that you want the outputs placed in
+var startYear = 2000; // what year do you want to start the time series 
+var endYear = 2022; // what year do you want to end the time series
+var startDay = '06-15'; // what should the beginning date of annual composite be | month-day 06-01
+var endDay =   '08-15'; // what should the ending date of annual composite be | month-day 09-30
 var index = 'NBR'; // select the index to run, option are: 'NBRz', Band5z, 'ENC'
-var maskThese = ['cloud', 'shadow', 'snow']; // select classes to masks as a list of strings: 'cloud', 'shadow', 'snow', 'water'
+var maskThese = ['cloud', 'shadow', 'snow','water']; // select classes to masks as a list of strings: 'cloud', 'shadow', 'snow', 'water'
 
 // define internal parameters - see https://emapr.github.io/LT-GEE/lt-gee-requirements.html#lt-parameters for details 
 var runParams = { 
-  maxSegments: 6,
+  maxSegments: 11,
   spikeThreshold: 0.9,
   vertexCountOvershoot: 3,
   preventOneYearRecovery: true,
-  recoveryThreshold: 0.25,
+  recoveryThreshold: 0.75,
   pvalThreshold: 0.05,
   bestModelProportion: 0.75,
-  minObservationsNeeded: 6
+  minObservationsNeeded: 11
 };
 
 // optional inputs
@@ -51,7 +51,7 @@ var ltgee = require('users/emaprlab/public:Modules/LandTrendr.js');
 
 // get geometry stuff
 var aoi = ee.FeatureCollection(featureCol)
-            .filter(ee.Filter.stringContains(featureKey, featureValue))
+            //.filter(ee.Filter.stringContains(featureKey, featureValue))
             .geometry()
             .buffer(aoiBuffer);
 
@@ -102,15 +102,7 @@ var ltStack = vertStack.addBands(rmse)
                        .unmask(-9999);
 
 var nVert = parseInt(runParams.maxSegments)+1;
-var fileNamePrefix = featureKey+'-'+featureValue+'-'+index+'-'+nVert.toString()+'-'+startYear.toString()+endYear.toString() + '-' + startDay.replace('-', '') + endDay.replace('-', '')+'-'+runName+'-'+outProj.replace(':', '');                
-
-// make a timesync stack
-var box = aoi.bounds().buffer(6000).bounds();
-var tsStack = ltgee.timesyncLegacyStack(startYear, endYear, startDay, endDay, box);
-
-// make clear pixel count stack
-var nClearCollection = ltgee.buildClearPixelCountCollection(startYear, endYear, startDay, endDay, aoi, maskThese);
-var nClearStack = ltgee.collectionToBandStack(nClearCollection, startYear, endYear);
+var fileNamePrefix = index+'-'+nVert.toString()+'-'+startYear.toString()+endYear.toString() + '-' + startDay.replace('-', '') + endDay.replace('-', '')+'-'+runName+'-'+outProj.replace(':', '');                
 
 // make a list of images use to build collection
 var srCollectionList = ltgee.getCollectionIDlist(startYear, endYear, startDay, endDay, aoi, options).get('idList');
@@ -118,8 +110,6 @@ var srCollectionList = ltgee.getCollectionIDlist(startYear, endYear, startDay, e
 // make a dictionary of the run info
 var runInfo = ee.Dictionary({
   'featureCol': featureCol, 
-  'featureKey': featureKey,
-  'featureValue': featureValue,
   'runName': runName,
   'gDriveFolder': gDriveFolder,
   'fileNamePrefix': fileNamePrefix,
@@ -155,7 +145,7 @@ Export.table.toDrive({
 
 // export the segmentation data
 Export.image.toDrive({
-  'image': ltStack, 
+  'image': ltStack.clip(aoi), 
   'region': aoi, 
   'description': fileNamePrefix+'-LTdata', 
   'folder': gDriveFolder, 

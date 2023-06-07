@@ -23,7 +23,7 @@ import json # or geojson
 import numpy as np
 import functools
 # shp file path directory
-shpDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace/vector/change/NBR-12-20002022-06150815-v1-vloss_idx_100.0-col_0.0-9mmu_8con/"
+inDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace/"
 
 #__________________________________________________________
 #
@@ -70,12 +70,12 @@ def get_rasters(seg,cha,cms):
 #	coded in the function. There are many hard coded file paths
 #	in this functions.
 #____________________________________________________________
-def zonal_stat_operator(shp):
-	
+def zonal_stat_operator(dir):
+	shp = dir[0]
 	# output directory path
-	outDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace/vector/change_attri/"
-	changeDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/1990_2021/blueMountains/workspace/raster/landtrendr/change/"
-	segmentDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/1990_2021/blueMountains/workspace/raster/landtrendr/segmentation/"
+	outDir = dir[1]+"change_attri/"
+	changeDir = dir[1]+"raster/landtrendr/change/"
+	segmentDir = dir[1]+"raster/landtrendr/segmentation/"
 	cmonDir = ["/vol/v1/proj/bugnet/region6/bugnet_lt_change/supportDatasets/rasters/Cmonster/aggregated_attributions_5070_1990_2012_cmon.tif"] 
 	# alot of raster stack file paths.
 	
@@ -93,8 +93,9 @@ def zonal_stat_operator(shp):
 	
 	# time pararmeters, the start year and end year of the dataset. 
 	# NOtE: I feel like the date ranges should reflect the date time used in the compositing step so 1990 to 2020
-	start_year = 1990													#<<<<<<<<<<<<<<<<<<<<<<<<<<<
-	end_year = 2021														#<<<<<<<<<<<<<<<<<<<<<<<<<<<
+	start_year = int(os.path.basename(os.path.dirname(shp)).split('-')[2][:4])
+	end_year = int(os.path.basename(os.path.dirname(shp)).split('-')[2][4:])
+
 	band = range(start_year,end_year+1).index(shp_year)
 
 	print(shp)
@@ -255,26 +256,32 @@ def zonal_stat_operator(shp):
 		# fill any nan values with 0.0
 		df_merged.fillna(0.0, inplace=True)
 		
+	# check if out dir is real
+	os.makedirs(outdir, exist_ok=True)
 	# write the geopandas dataframe to a shp file 
-	df_merged.to_file(outDir+'attributed_testing_'+os.path.basename(shp))
+	df_merged.to_file(outDir+'attributed_'+os.path.basename(shp))
 	#df_merged.to_csv(outDir+"attributed_80_"+os.path.basename(shp)[0:-4]+".csv")	
 	
 	
 # main function
-def main(shpDir):
+def main(inDir):
 
 	# makes a list of shp file paths. That is fed to the paraelell function
-	shp_file_list = glob.glob(shpDir+"change_*.shp")
-	#sys.exit()
+	shp_file_list = glob.glob(inDir+"vector/change/**/change_*.shp") # this runs the risk of globing more than one directory
 
+	c = []
+	for i in shp_file_list:
+		c.append([i,inDir])
+
+	
 	# testing the function on a single file
 	#zonal_stat_operator(shp_file_list[10])
 
 	# run the program in parrellel
 	with Pool(5) as p:
-        	p.map(zonal_stat_operator, shp_file_list)
+        	p.map(zonal_stat_operator, c)
 
 # run main function 	
-main(shpDir)
+main(inDir)
 # exit program
 sys.exit()

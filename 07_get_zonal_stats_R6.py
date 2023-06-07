@@ -23,7 +23,7 @@ import json # or geojson
 import numpy as np
 import functools
 # shp file path directory
-shpDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/1990_2021/blueMountains/workspace/vector/change/NBR-7-19902021-06010910-v1-vloss_idx_75.0-col_0.0-4mmu_8con/"
+shpDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace/vector/change/NBR-12-20002022-06150815-v1-vloss_idx_100.0-col_0.0-9mmu_8con/"
 
 #__________________________________________________________
 #
@@ -73,7 +73,7 @@ def get_rasters(seg,cha,cms):
 def zonal_stat_operator(shp):
 	
 	# output directory path
-	outDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/1990_2021/blueMountains/workspace/vector/testing/"
+	outDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace/vector/change_attri/"
 	changeDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/1990_2021/blueMountains/workspace/raster/landtrendr/change/"
 	segmentDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/1990_2021/blueMountains/workspace/raster/landtrendr/segmentation/"
 	cmonDir = ["/vol/v1/proj/bugnet/region6/bugnet_lt_change/supportDatasets/rasters/Cmonster/aggregated_attributions_5070_1990_2012_cmon.tif"] 

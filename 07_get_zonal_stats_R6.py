@@ -80,7 +80,6 @@ def zonal_stat_operator(dir):
 	# alot of raster stack file paths.
 	
 	imageDic = get_rasters(changeDir,segmentDir,cmonDir)
-	print(imageDic)
 	# Check file path to see if they are real
 	for key, value in imageDic.items() :		
 		if not os.path.exists(value):
@@ -92,14 +91,22 @@ def zonal_stat_operator(dir):
 	shp_year = int(os.path.splitext(os.path.basename(shp))[0][-4:])
 	
 	# time pararmeters, the start year and end year of the dataset. 
-	# NOtE: I feel like the date ranges should reflect the date time used in the compositing step so 1990 to 2020
 	start_year = int(os.path.basename(os.path.dirname(shp)).split('-')[2][:4])
 	end_year = int(os.path.basename(os.path.dirname(shp)).split('-')[2][4:])
-
 	band = range(start_year,end_year+1).index(shp_year)
+
+	cmon_start = 1990
+	cmon_end = 2012
+	try:
+		cmon_band = range(cmon_start,cmon_end+1).index(shp_year)
+		run_cmon = 1		
+	except:
+		run_cmon = 0		
 
 	print(shp)
 	print(band)
+	print(shp_year)
+	print(cmon_band)
 
 	# an empty list for each dataframe that will hold zonal stats from each image
 	gdf_list = []	
@@ -110,7 +117,7 @@ def zonal_stat_operator(dir):
 		# greater then 22 (2012). Thus, in the code block below the creation of dataframes includes
 		# the Cmon image. Inversely, the next code block (bands > 22), does not incorpreate the Cmon
 		# image.
-		if band <= 22:
+		if run_cmon:
 	
 			# When the iteration moves to a key containing 'Val' the image assocated has one extra 
 			# band. This image is not a change image so it contain the first year data. Thus, to 
@@ -130,7 +137,7 @@ def zonal_stat_operator(dir):
 				cmap = {0: 'masked', 1: 'Stable', 10: 'Unkwn Agent', 11: 'Other ', 20: 'Clearcut', 21: 'Part Harvest', 22: 'Salvage', 30: 'Development', 40: 'Fire', 50: 'Insect/Disease', 51: 'MPB-29', 52: 'MPB-239', 53: 'WSB-29', 54: 'WSB-239', 61: 'Water', 100: 'Ukn Slow Disturbance', 110: 'Ukn Abrupt Disturbance', 160: 'Recovery', 201: 'False Change'}
 				
 				# executes and asigns zonal stats as a 'geojson'. we also add 1 to the band to sync the images
-				stats = zonal_stats(shp, value, categorical=True, stats="count", geojson_out=True, category_map=cmap, band = band)
+				stats = zonal_stats(shp, value, categorical=True, stats="count", geojson_out=True, category_map=cmap, band = cmon_band)
 
 			else: 
 				# executes and asigns zonal stats as a 'geojson'
@@ -162,7 +169,7 @@ def zonal_stat_operator(dir):
 		# The cmon dataset has less bands then the rest of the image datasets. Thus, onece we drop the cmon dataset from the 
 		# zonal stats process. This is seen in the condionals below as we 'break' when the iteration intersects the cmon
 		# dataset. Otherwize the process is the same as above just without the Cmon.
-		elif band > 22:
+		elif run_cmon:
 
 			if 'Val' in key:
 

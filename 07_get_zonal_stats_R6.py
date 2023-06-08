@@ -73,7 +73,7 @@ def get_rasters(seg,cha,cms):
 def zonal_stat_operator(dir):
 	shp = dir[0]
 	# output directory path
-	outDir = dir[1]+"change_attri/"
+	outDir = dir[1]+"vector/change_attri/"
 	changeDir = dir[1]+"raster/landtrendr/change/"
 	segmentDir = dir[1]+"raster/landtrendr/segmentation/"
 	cmonDir = ["/vol/v1/proj/bugnet/region6/bugnet_lt_change/supportDatasets/rasters/Cmonster/aggregated_attributions_5070_1990_2012_cmon.tif"] 
@@ -130,7 +130,7 @@ def zonal_stat_operator(dir):
 				cmap = {0: 'masked', 1: 'Stable', 10: 'Unkwn Agent', 11: 'Other ', 20: 'Clearcut', 21: 'Part Harvest', 22: 'Salvage', 30: 'Development', 40: 'Fire', 50: 'Insect/Disease', 51: 'MPB-29', 52: 'MPB-239', 53: 'WSB-29', 54: 'WSB-239', 61: 'Water', 100: 'Ukn Slow Disturbance', 110: 'Ukn Abrupt Disturbance', 160: 'Recovery', 201: 'False Change'}
 				
 				# executes and asigns zonal stats as a 'geojson'. we also add 1 to the band to sync the images
-				stats = zonal_stats(shp, value, categorical=True, stats="count", geojson_out=True, category_map=cmap, band = band+1  )
+				stats = zonal_stats(shp, value, categorical=True, stats="count", geojson_out=True, category_map=cmap, band = band)
 
 			else: 
 				# executes and asigns zonal stats as a 'geojson'
@@ -257,7 +257,7 @@ def zonal_stat_operator(dir):
 		df_merged.fillna(0.0, inplace=True)
 		
 	# check if out dir is real
-	os.makedirs(outdir, exist_ok=True)
+	os.makedirs(outDir, exist_ok=True)
 	# write the geopandas dataframe to a shp file 
 	df_merged.to_file(outDir+'attributed_'+os.path.basename(shp))
 	#df_merged.to_csv(outDir+"attributed_80_"+os.path.basename(shp)[0:-4]+".csv")	

@@ -95,12 +95,14 @@ def zonal_stat_operator(dir):
 	end_year = int(os.path.basename(os.path.dirname(shp)).split('-')[2][4:])
 	band = range(start_year,end_year+1).index(shp_year)
 
+	cmon_band = 0
 	cmon_start = 1990
 	cmon_end = 2012
 	try:
-		cmon_band = range(cmon_start,cmon_end+1).index(shp_year)
+		cmon_band = range(cmon_start,cmon_end+1).index(shp_year)+1
 		run_cmon = 1		
 	except:
+		cmon_band = 0
 		run_cmon = 0		
 
 	print(shp)
@@ -169,7 +171,7 @@ def zonal_stat_operator(dir):
 		# The cmon dataset has less bands then the rest of the image datasets. Thus, onece we drop the cmon dataset from the 
 		# zonal stats process. This is seen in the condionals below as we 'break' when the iteration intersects the cmon
 		# dataset. Otherwize the process is the same as above just without the Cmon.
-		elif run_cmon:
+		elif not run_cmon:
 
 			if 'Val' in key:
 
@@ -235,7 +237,7 @@ def zonal_stat_operator(dir):
 	# over the total pixel count for a poygon. The logic goes like this: if a feild exists
 	# calculate the proportion with that feild involved and make a new for the proportion.
 
-	if band <= 22:
+	if run_cmon:
 	#if 1 == 22:
 
 		proportion_names = ["masked","Stable","Unknw Agent","Other","Part Harvest","Salvage","Development","Clearcut","Fire","Insect/Disease","MPB-29","MPB-239","WSB-29","WSB-239","Water","Ukn Slow Disturbance","Ukn Abrupt Disturbance","Recovery","False Change"]
@@ -282,10 +284,10 @@ def main(inDir):
 
 	
 	# testing the function on a single file
-	#zonal_stat_operator(shp_file_list[10])
+	#zonal_stat_operator(c[-1])
 
 	# run the program in parrellel
-	with Pool(5) as p:
+	with Pool(6) as p:
         	p.map(zonal_stat_operator, c)
 
 # run main function 	

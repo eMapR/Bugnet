@@ -1,4 +1,3 @@
-
 **Overview:**
 
 Death and destruction is occuring in forests; which is often due to or involves the effects of insects. This death can be widespread, killing hundreds of thousands of acres of trees in a year which was reported in Washington state [reference ] in 2019. However, these effects are not limited to Washington State but occur throughout the forests of the Western United States [reference] and the globe [reference]. This is problematic as an influx of dead standing trees increases the possibility for further damage by fire or the untimely forest reduction by harvest to midgate fire susceptibility [reference].

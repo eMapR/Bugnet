@@ -12,7 +12,7 @@ param.aoi = ee.FeatureCollection(eco_sub.intersection(waor).buffer(1000)) // Cas
 // time parameters 
 param.ltstartYear = 1995;
 param.ltendYear = 2023; // this should not be the same as the target year and it need to be greater than the target year
-param.target = 2022;
+param.target = 2018;
 param.startDay = "06-15";
 param.endDay = "08-15";
 param.maskStartTime = ee.Date((param.target-5).toString()+"-01-01").millis()

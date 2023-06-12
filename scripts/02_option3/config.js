@@ -8,7 +8,7 @@ param.aoi = ee.FeatureCollection("TIGER/2018/States").filter(ee.Filter.or(ee.Fil
 // time parameters 
 param.ltstartYear = 1995;
 param.ltendYear = 2023; // this should not be the same as the target year and it need to be greater than the target year
-param.target = 2022;
+param.target = 2018;
 param.startDay = "05-10";
 param.endDay = "09-10";
 param.maskStartTime = ee.Date((param.target-5).toString()+"-01-01").millis()

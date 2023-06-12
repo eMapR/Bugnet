@@ -1,6 +1,6 @@
 
 <p align="center">
-	<img src="https://docs.google.com/drawings/d/e/2PACX-1vTucBF8oxa3oNVLYTc3UMNwEtstfQM4iyQaBzAohjG6Q2RonlcCKU2aYnUMOPdz750YrBZZwIkX1iox/pub?w=574&amp;h=557">
+	<img src="https://docs.google.com/drawings/d/e/2PACX-1vTucBF8oxa3oNVLYTc3UMNwEtstfQM4iyQaBzAohjG6Q2RonlcCKU2aYnUMOPdz750YrBZZwIkX1iox/pub?w=574&amp;h=557" width="50%" height="50%">
 </p>
 
 Mapping events on the landscape at small map scales has increasingly become the job of remote sensing. Land management practices have largely been the driving force for such development, and many of these developments have honed in on specific themes. The US Forest Service has a special interest in insects and disease that damage and/or kill trees. This interest has prompted the Forest Service to create the Foreste Health Program to monitor these events. On a yearly basis the Aerial Detection Survey (ADS) of the Forest Service are the ones who report the physical observation of insects and disease in the forest, and have increasingly been looking to remote sensing to facilitate their survey. Therefore in concert with Washington State DNR and US Forest Service, the Oregon State University eMapR Lab has been developing Bugnet. Bugnet is a collection of models that outline the locations of insects and disease on the landscape. These models incorporate Landsat imagery, LandTrendr, ADS observations, and other various forms of image processing, and machine learning to complete its task.

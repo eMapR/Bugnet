@@ -22,7 +22,7 @@ print('ads size', ads.size())
 //   .rename(['ads_clusters'])
   
 //mutate the filter ads polygons into rasters 
-var ads_img = ads.reduceToImage(['PERCENT_AF'], ee.Reducer.first()).int16()
+var ads_img = ads.reduceToImage(['DCA_CODE'], ee.Reducer.first()).int16()
   //change the pixel values of the ads image to 100 -- this allows us to track the cluster that intersect ads polygons  
   .multiply(0)//.add(100)
   // add kmeans cluster values to ads image

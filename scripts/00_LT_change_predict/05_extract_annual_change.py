@@ -12,7 +12,7 @@ import numpy as np
 from glob import glob
 import csv
 from osgeo import gdal
-
+import config
 
 # change working directory to this script's dir so we can load the ltcdb library
 #scriptAbsPath = os.path.abspath(__file__)
@@ -22,7 +22,7 @@ import ltcdb
 
 # get the head folder
 #headDir = ltcdb.get_dir("Select the project head folder", scriptDname)
-headDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace/"
+headDir = config.param['path']
 
 ltcdb.is_headDir(headDir)
 

@@ -7,7 +7,7 @@ Created on Mon Mar 05 11:23:22 2018
 
 import os
 import sys
-
+import config
 
 # change working directory to this script's dir so we can load the ltcdb library
 #scriptAbsPath = os.path.abspath(__file__)
@@ -19,7 +19,7 @@ import ltcdb
 #headDir = ltcdb.get_dir("Select or create and select a project head folder", scriptDname)
 #if headDir == '.':
 #  sys.exit()
-headDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace/"
+headDir = config.param['path']
 
 # get the list of dirs to create
 dirs = ltcdb.dir_path(headDir, 'all')

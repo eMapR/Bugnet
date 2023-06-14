@@ -12,9 +12,9 @@ import glob
 import sys
 import os
 from multiprocessing import Pool
-
+import config
 # shp file 
-inDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace/"
+inDir = config.param['path']
 shp_file_list = glob.glob(inDir+'vector/change_attri/*.shp')
 list_of_dfs = []
 for i in shp_file_list:

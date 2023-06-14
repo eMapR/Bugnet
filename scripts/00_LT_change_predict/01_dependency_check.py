@@ -4,10 +4,10 @@ Created on Fri Mar 02 08:35:19 2018
 
 @author: braatenj
 """
-
+import config
 import imp
 import subprocess
-
+import os
 
 # =============================================================================
 # 	Define  the dependent libraries
@@ -33,6 +33,11 @@ cmd = 'conda config --add channels conda-forge'
 subprocess.call(cmd, shell=True)
 
 
+# check to make sure working directory is real
+if os.path.isdir(config.param['path']):
+  print('\n Pathway to project directory is real ')
+else :
+  print('Check the pathway in the config.py file')
 
 
 # =============================================================================

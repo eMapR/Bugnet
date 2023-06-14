@@ -27,12 +27,12 @@ from osgeo import gdal, gdal_array
 import numpy as np
 import pandas as pd
 import glob
-
+import config
 #________________________Accessing_Data_and_Initiate_Dataframes_________________________
 
 # ----------------------------------------------------
 # read in singe shape file as dataframe
-inDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace/"
+inDir = config.param['path']
 
 # out DataSets
 outDir = inDir+"vector/change_predicted/"

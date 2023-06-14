@@ -22,8 +22,9 @@ from multiprocessing import Pool
 import json # or geojson
 import numpy as np
 import functools
+import config
 # shp file path directory
-inDir = "/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace/"
+inDir = config.param['path']
 
 #__________________________________________________________
 #

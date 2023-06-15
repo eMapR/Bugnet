@@ -1,3 +1,3 @@
 param=dict(
-	path="/vol/v1/proj/bugnet/region6/bugnet_lt_change/workspace",
+	path=r"E:\v1\bugnet\workspace\Bugnet",
 	disturbance_mag =100)

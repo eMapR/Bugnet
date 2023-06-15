@@ -8,7 +8,6 @@ Created on Mon Mar 05 11:23:22 2018
 import os
 import sys
 import config
-
 # change working directory to this script's dir so we can load the ltcdb library
 #scriptAbsPath = os.path.abspath(__file__)
 #scriptDname = os.path.dirname(scriptAbsPath)
@@ -20,7 +19,7 @@ import ltcdb
 #if headDir == '.':
 #  sys.exit()
 headDir = config.param['path']
-
+print(1)
 # get the list of dirs to create
 dirs = ltcdb.dir_path(headDir, 'all')
 

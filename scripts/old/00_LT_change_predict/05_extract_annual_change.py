@@ -24,8 +24,6 @@ import ltcdb
 #headDir = ltcdb.get_dir("Select the project head folder", scriptDname)
 headDir = config.param['path']
 
-
-
 ltcdb.is_headDir(headDir)
 
 # get dir paths we need 
@@ -36,63 +34,63 @@ changeDir = ltcdb.dir_path(headDir, 'rLc')
 ltRunDirs = [os.path.join(segDir, thisRunDir) for thisRunDir in os.listdir(segDir)]
 
 # get the min change for each 
-changeTypes = config.param['change_type']
-minMags = config.param['minMags']
-collapseEm = config.param['collapseEm']
-dsnrs = config.param['dsnrs']
+changeTypes = []
+minMags = []
+collapseEm = []
+dsnrs = []
 for segDir in ltRunDirs:
   # get the min mag
-  #changeTypeGood = 0
-  #while changeTypeGood == 0:
-  #changeType = raw_input('\nRegarding LT run: '+os.path.basename(segDir) + '\nWhat change do you want to map (disturbance or growth)?: ')
-  #changeType = str(changeType).lower()
-  if changeTypes[0] in ['growth', 'disturbance']:
-    #changeTypeGood = 1
-    minMagAdj = 1 if changeTypes[0] == 'disturbance' else -1
-  else:
-    print('\n')
-    print('ERROR: The selected change type does not equal either disturbance or growth.')
-    print('       Please check config fil and make sure to enter only a single accepted option.')
-  #changeTypes.append(change_Type)
+  changeTypeGood = 0
+  while changeTypeGood is 0:
+    changeType = raw_input('\nRegarding LT run: '+os.path.basename(segDir) + '\nWhat change do you want to map (disturbance or growth)?: ')
+    changeType = str(changeType).lower()
+    if changeType in ['growth', 'disturbance']:
+      changeTypeGood = 1
+      minMagAdj = 1 if changeType == 'disturbance' else -1
+    else:
+      print('\n')
+      print('ERROR: The selected change type does not equal either disturbance or growth.')
+      print('       Please try again and make sure to enter only a single accepted option.')
+  changeTypes.append(changeType)
 
-  #minMagGood = 0
-  #while minMagGood == 0:
-  #minMag = raw_input('\nRegarding LT run: '+os.path.basename(segDir) + '\nWhat is the desired minimum change magnitude: ')
-  try:
-    minMag = float(minMags[0])
-    minMag = abs(minMag) * minMagAdj # -1 *
-    #minMagGood = 1
-  except ValueError: 
-    print('\n')
-    print('ERROR: The selected value cannot be converted to an integer.')
-    print('       Please check the config file and make sure to enter a number for minMags.')
-  minMags[0]=minMag
+  minMagGood = 0
+  while minMagGood is 0:
+    minMag = raw_input('\nRegarding LT run: '+os.path.basename(segDir) + '\nWhat is the desired minimum change magnitude: ')
+    try:
+      minMag = float(minMag)
+      minMag = abs(minMag) * minMagAdj # -1 *
+      minMagGood = 1
+    except ValueError: 
+      print('\n')
+      print('ERROR: The selected value cannot be converted to an integer.')
+      print('       Please try again and make sure to enter a number.')
+  minMags.append(minMag)
 
-  #dsnrGood = 0
-  #while dsnrGood == 0:
-  #  dsnr = raw_input('\nRegarding LT run: '+os.path.basename(segDir) + '\nIs the minimum change magnitude unit DSNR? (yes or no): ')
-  #  dsnr = str(dsnr).lower()
-  if dsnrs[0] in ['yes', 'no']:
-    #dsnrGood = 1
-    dsnr = True if dsnrs[0] == 'yes' else False
-  else: 
-    print('\n')
-    print('ERROR: The input is not equal to either yes or no.')
-    print('       Please try again and make sure to enter only a single accepted option.')
-  dsnrs[0]=dsnr
+  dsnrGood = 0
+  while dsnrGood is 0:
+    dsnr = raw_input('\nRegarding LT run: '+os.path.basename(segDir) + '\nIs the minimum change magnitude unit DSNR? (yes or no): ')
+    dsnr = str(dsnr).lower()
+    if dsnr in ['yes', 'no']:
+      dsnrGood = 1
+      dsnr = True if dsnr == 'yes' else False
+    else: 
+      print('\n')
+      print('ERROR: The input is not equal to either yes or no.')
+      print('       Please try again and make sure to enter only a single accepted option.')
+  dsnrs.append(dsnr)
 
   
-  #collapseGood = 0
-  #while collapseGood == 0:
-    #collapse = raw_input('\nRegarding LT run: '+os.path.basename(segDir) + '\nConsecutive change segment collapse threshold (0 to ignore): ')
-  try:
-    collapse = float(collapseEm[0])
-    #collapseGood = 1
-  except ValueError: 
-    print('\n')
-    print('ERROR: The selected value cannot be converted to a float value.')
-    print('       Please check config file  and make sure to enter a number for .')
-  collapseEm[0]=collapse
+  collapseGood = 0
+  while collapseGood is 0:
+    collapse = raw_input('\nRegarding LT run: '+os.path.basename(segDir) + '\nConsecutive change segment collapse threshold (0 to ignore): ')
+    try:
+      collapse = float(collapse)
+      collapseGood = 1
+    except ValueError: 
+      print('\n')
+      print('ERROR: The selected value cannot be converted to a float value.')
+      print('       Please try again and make sure to enter a number.')
+  collapseEm.append(collapse)
   
 
 
@@ -285,23 +283,23 @@ for i, segDir in enumerate(ltRunDirs):
   # get info to print progress
   nBlocks = 0
   nBlock = 0
-  for y in range(0, ySize, blockSize):
-    for x in range(0, xSize, blockSize):
+  for y in xrange(0, ySize, blockSize):
+    for x in xrange(0, xSize, blockSize):
       nBlocks += 1
   
   ##############################################################################
 
   
-  for y in range(0, ySize, blockSize):
+  for y in xrange(0, ySize, blockSize):
     #yRange = range(0, ySize, blockSize)
     #y=yRange[4]
     if y + blockSize < ySize:
       rows = blockSize
     else:
       rows = ySize - y
-    for x in range(0, xSize, blockSize):
-      #range = range(0, xSize, blockSize)
-      #x=range[4]
+    for x in xrange(0, xSize, blockSize):
+      #xRange = range(0, xSize, blockSize)
+      #x=xRange[4]
       if x + blockSize < xSize:
         cols = blockSize
       else:
@@ -343,11 +341,11 @@ for i, segDir in enumerate(ltRunDirs):
       #  npFitIDX = npFitIDX * flipper
       nVerts, subYsize, subXsize = npYrs.shape
    
-      for subY in range(subYsize):
+      for subY in xrange(subYsize):
         #subY = 0
         #progress = (y+1.0)/ySize
         #update_progress(progress)    
-        for subX in range(subXsize):
+        for subX in xrange(subXsize):
           #subX = 0
           # read in the vert years for this pixel
           vertYrs = npYrs[:, subY, subX]

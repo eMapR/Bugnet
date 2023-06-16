@@ -157,14 +157,14 @@ for runName in runNames[0:1]:
   for i in range(len(outTypes)):
     print('      '+runName+'-'+outTypes[i])
     block = 0
-    for y in range(0, ySize, blockSize):
+    for y in xrange(0, ySize, blockSize):
       #yRange = range(0, ySize, blockSize)
       #y=yRange[5]
       if y + blockSize < ySize:
         rows = blockSize
       else:
         rows = ySize - y
-      for x in range(0, xSize, blockSize):
+      for x in xrange(0, xSize, blockSize):
         #xRange = range(0, xSize, blockSize)
         #x=xRange[4]
         if x + blockSize < xSize:
@@ -320,21 +320,21 @@ for runName in runNames[0:1]:
   # get info to print progress
   nBlocks = 0
   nBlock = 0
-  for y in range(0, ySize, blockSize):
-    for x in range(0, xSize, blockSize):
+  for y in xrange(0, ySize, blockSize):
+    for x in xrange(0, xSize, blockSize):
       nBlocks += 1
   
   
   ##############################################################################
   
-  for y in range(0, ySize, blockSize):
+  for y in xrange(0, ySize, blockSize):
     #yRange = range(0, ySize, blockSize)
     #y=yRange[4]
     if y + blockSize < ySize:
       rows = blockSize
     else:
       rows = ySize - y
-    for x in range(0, xSize, blockSize):
+    for x in xrange(0, xSize, blockSize):
       #xRange = range(0, xSize, blockSize)
       #x=xRange[4]
       if x + blockSize < xSize:
@@ -360,11 +360,11 @@ for runName in runNames[0:1]:
       npFtvTCW = srcFtvTCW.ReadAsArray(x, y, cols, rows)
       
       nVerts, subYsize, subXsize = npYrs.shape
-      for subY in range(subYsize):
+      for subY in xrange(subYsize):
         #subY = 0
         #progress = (y+1.0)/ySize
         #update_progress(progress)    
-        for subX in range(subXsize):
+        for subX in xrange(subXsize):
           #subX = 0
           vertYrsPix = npYrs[:, subY, subX]
           

@@ -52,27 +52,30 @@ def make_output_blanks(inputFtv, outPuts, adj):
 
 
 def get_info(name, eeFile=False):
+  print(name)
   pieces = name.split('-')
+  print(pieces)
   if eeFile:
-    pieces = pieces[0:8] #8
-    crs = pieces[5]
+    pieces = pieces[0:8]
+    crs = pieces[7]
     crs = crs[0:4]+':'+crs[4:]
-    #del pieces[7]
+    del pieces[7]
     info = {#'key': pieces[0],
             #'value': pieces[1],
-            'indexID': pieces[0], #2
-            'nVert': int(pieces[1]), #3
-            'startYear':int(pieces[2][0:4]),#4
-            'endYear':int(pieces[2][4:8]),#4
-            'startDay':pieces[3][0:4],#5
-            'endDay':pieces[3][4:8],#5
+            'indexID': pieces[2],
+            'nVert': int(pieces[3]),
+            'startYear':int(pieces[4][0:4]),
+            'endYear':int(pieces[4][4:8]),
+            'startDay':pieces[5][0:4],
+            'endDay':pieces[5][4:8],
             'crs':crs,
-            'version':pieces[4],#6
-            'name': '-'.join(pieces[:-2])}
+            'version':pieces[6],
+            'name': '-'.join(pieces[2:])}
   else:
     pieces = pieces[0:6]
     crs = pieces[5]
     crs = crs[0:4]+':'+crs[4:]
+    print(pieces)
     info = {#'key': pieces[0],
             #'value': pieces[1],
             'indexID': pieces[0],
@@ -84,6 +87,7 @@ def get_info(name, eeFile=False):
             'version':pieces[4],
             'crs':crs,
             'name': '-'.join(pieces[2:])}
+  print(info)
   return info
 
  
@@ -165,7 +169,7 @@ def year_to_band(bname, adj):
   startYear = info['startYear'] + adj
   endYear = info['endYear']
   nYears = (endYear - startYear)+1
-  yearIndex = np.array([0]*(startYear)+list(range(1, nYears+1)))
+  yearIndex = np.array([0]*(startYear)+range(1, nYears+1))
   return yearIndex
 
 

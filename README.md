@@ -10,3 +10,6 @@ Bugnet highlights insects and disease (I&D),and it does so by removing all pixel
 [Bugnet Report](https://docs.google.com/document/d/1AWJa54STgN8wu9Tza38HASRS-OiAb2-4wwe06Qy4grg/edit?usp=sharing)
 
 [Bugnet Workflow](https://docs.google.com/document/d/1TVWLJNkQe3afabvvFFBqrH9IL9TINOHnL-gE02Y5HEY/edit?usp=sharing)
+
+[Bugnet Dataset](https://oregonstate.box.com/s/vk1im0nxi4k642o4qa1umbjmulpxv5hk)
+

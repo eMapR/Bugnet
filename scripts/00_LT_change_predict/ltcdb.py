@@ -71,9 +71,10 @@ def get_info(name, eeFile=False):
             'version':pieces[6],#6
             'name': '-'.join(pieces[:-2])}
   else:
+    print(pieces)
     pieces = pieces[0:8]
-    crs = pieces[7]
-    crs = crs[0:4]+':'+crs[4:]
+    #crs = pieces[7]
+    #crs = crs[0:4]+':'+crs[4:]
     info = {'key': pieces[0],
             'value': pieces[1],
             'indexID': pieces[2],
@@ -83,7 +84,7 @@ def get_info(name, eeFile=False):
             'startDay':pieces[5][0:4],
             'endDay':pieces[5][4:8],
             'version':pieces[6],
-            'crs':crs,
+            #'crs':crs,
             'name': '-'.join(pieces[2:])}
   return info
 

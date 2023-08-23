@@ -1,367 +1,399 @@
 # -*- coding: utf-8 -*-
 """
-Created on Thu Mar 15 12:04:05 2018
+Created on Tue Mar 06 14:09:32 2018
 
 @author: braatenj
 """
 
-from osgeo import gdal, ogr, osr
-from shutil import copyfile
-#import Tkinter, tkFileDialog
-import subprocess
+import time
 import os
-import numpy as np
+import subprocess
 import sys
-import math
-import pandas as pd
+import numpy as np
+from osgeo import gdal, ogr
+from glob import glob
+from shutil import copyfile
+import config
+
+# change working directory to this script's dir so we can load the ltcdb library
+#scriptAbsPath = os.path.abspath(__file__)
+#scriptDname = os.path.dirname(scriptAbsPath)
+#os.chdir(scriptDname)
+import ltcdb
+#reload(ltcdb)
+
+# get the head folder
+#headDir = ltcdb.get_dir("Select the project head folder", scriptDname)
+headDir = config.param['path']
+ltcdb.is_headDir(headDir)
+
+# get dir paths we need 
+chunkDir = ltcdb.dir_path(headDir, 'rPg')
+timeSyncDir = ltcdb.dir_path(headDir, 'tsV')
+segDir = ltcdb.dir_path(headDir, 'rLs')
+
+# find the tif chunks
+tifs = glob(os.path.join(chunkDir,'*LTdata*.tif'))
+
+# are there any tif files to work with?
+if len(tifs) == 0:
+  sys.exit('ERROR: There are no TIF files in the folder selected.\nPlease fix this.')
+
+######################################################################
+# start tracking time
+startTime = time.time()
+
+# set the unique names 
+runNames = list(set(['-'.join(os.path.basename(fn).split('-')[0:8]) for fn in tifs])) 
 
 
-def make_output_blanks(inputFtv, outPuts, adj):
-  #inputFtv = vertYrsFile
-  src_ds = gdal.Open(inputFtv)
-  tx = src_ds.GetGeoTransform()
-  prj = src_ds.GetProjection()
-  driver = gdal.GetDriverByName('GTiff')
-  band = src_ds.GetRasterBand(1)
-  xsize = band.XSize
-  ysize = band.YSize
-  nBands = src_ds.RasterCount
-  src_ds = None
+
+# loop through each unique names, find the matching set, merge them as vrt, and then decompose them
+for runName in runNames[0:1]:
+  # get info about the GEE run
+  info = ltcdb.get_info(runName, eeFile=True)  
+  runName = info['name']
+  proj = info['crs']
   
-  nBands += adj
-  for i, thisOut in enumerate(outPuts):
-    if i == 0:
-      # make a new file
-      copyThis = thisOut
-      dst_ds = driver.Create(thisOut, xsize, ysize, nBands, gdal.GDT_Int16)
-      dst_ds.SetGeoTransform(tx)
-      dst_ds.SetProjection(prj)
-      #dst_ds = None
-      
-      array = np.add(dst_ds.GetRasterBand(1).ReadAsArray(),-9999)
-      for b in range(1,nBands+1):
-        band = dst_ds.GetRasterBand(b)
-        band.WriteArray(array)
-        band.SetNoDataValue(-9999)
-        band.FlushCache()
-      dst_ds = None
-      
-    else:
-      copyfile(copyThis, thisOut)
-  return nBands
+  # make a dir to unpack the data
+  thisOutDirPrep = os.path.join(ltcdb.dir_path(headDir, 'rP'), runName)
+  if not os.path.exists(thisOutDirPrep):
+    os.mkdir(thisOutDirPrep)
+  
+  # make a dir for the final data stacks 
+  thisOutDir = os.path.join(segDir, runName)
+  if not os.path.exists(thisOutDir):
+    os.mkdir(thisOutDir)
 
 
-def get_info(name, eeFile=False):
-  pieces = name.split('-')
-  if eeFile:
-    print(pieces)
-    pieces = pieces[0:8] #8
-    crs = pieces[5]
-    crs = crs[0:4]+':'+crs[4:]
-    #del pieces[7]
-    info = {'key': pieces[0],
-            'value': pieces[1],
-            'indexID': pieces[2], #2
-            'nVert': int(pieces[3]), #3
-            'startYear':int(pieces[4][0:4]),#4
-            'endYear':int(pieces[4][4:8]),#4
-            'startDay':pieces[5][0:4],#5
-            'endDay':pieces[5][4:8],#5
-            'crs':crs,
-            'version':pieces[6],#6
-            'name': '-'.join(pieces[:-2])}
+  print('\nWorking on LT run: '+runName)
+  # find the files that belong to this set  
+  matches = glob(os.path.join(chunkDir,'*'+runName+'*LTdata*.tif'))
+  if len(matches) == 0: 
+    sys.exit('ERROR: Cannot find '+'*'+runName+'*LTdata*.tif files in this dir: '+chunkDir)
+
+  """
+  # define the projection - get the first matched file and extract the crs from it
+  proj = os.path.basename(matches[0]).split('-')[6]
+  if proj[0:4] != 'EPSG':
+    sys.exit('ERROR: Cannot parse the CRS properly from this file name: '+os.path.basename(matches[0])+'.\n')
+  proj = info
+  """
+  
+  # move and reproject the timesync files if there are any
+  tsAoi = glob(os.path.join(chunkDir,'*'+runName+'*TSaoi.shp'))
+  if len(tsAoi) != 0:
+    outShpFile = os.path.join(ltcdb.dir_path(headDir, 'tsV'), runName+'-TSaoi.shp')
+    if not os.path.exists(outShpFile): 
+      cmd = 'ogr2ogr -f "ESRI Shapefile" -t_srs '+proj+' '+outShpFile+' '+tsAoi[0]
+      cmdFailed = subprocess.call(cmd, shell=True)
+      ltcdb.is_success(cmdFailed)
+  
+  tsData = glob(os.path.join(chunkDir,'*'+runName+'*TSdata*.tif'))
+  if len(tsData) != 0:
+    for fromThis in tsData:
+      toThis = os.path.join(ltcdb.dir_path(headDir, 'tsP'), os.path.basename(fromThis))
+      if not os.path.exists(toThis): 
+        os.rename(fromThis, toThis)
+
+  # deal with the LT shapefile - find it reproject it to the vector folder
+  ltAoi = glob(os.path.join(chunkDir,'*'+runName+'*LTaoi.shp'))
+  if len(ltAoi) != 0:
+    outShpFile = os.path.join(ltcdb.dir_path(headDir, 'v'), runName+'-LTaoi.shp')
+    if not os.path.exists(outShpFile):
+      cmd = 'ogr2ogr -f "ESRI Shapefile" -t_srs '+proj+' '+outShpFile+' '+ltAoi[0]
+      cmdFailed = subprocess.call(cmd, shell=True)
+      ltcdb.is_success(cmdFailed)
   else:
-    pieces = pieces[0:6]
-    crs = pieces[5]
-    crs = crs[0:4]+':'+crs[4:]
-    info = {#'key': pieces[0],
-            #'value': pieces[1],
-            'indexID': pieces[0],
-            'nVert': int(pieces[1]),
-            'startYear':int(pieces[2][0:4]),
-            'endYear':int(pieces[2][4:8]),
-            'startDay':pieces[3][0:4],
-            'endDay':pieces[3][4:8],
-            'version':pieces[4],
-            'crs':crs,
-            'name': '-'.join(pieces[2:])}
-  return info
+    sys.exit('ERROR: Can\'t find the shapefile that is suppose to be with the data downloaded from Google Drive')
 
- 
-def write_array(dsOut, band, data, x, y):
-  dataBand = dsOut.GetRasterBand(band+1)
-  data = data[band, :, :]
-  dataBand.WriteArray(data, x, y)
-  
-  
-  
-def get_dir(message, initialdir = "/"):
-  root = Tkinter.Tk()
-  root.withdraw()
-  root.overrideredirect(1)
-  root.attributes('-alpha', 0.0)
-  root.deiconify()
-  root.lift()
-  root.focus_force()
-  thisDir = os.path.normpath(str(tkFileDialog.askdirectory(initialdir = initialdir, title = message)))
-  root.destroy()
-  return thisDir
-
-
-def get_file(message, initialdir = "/", filetypes = [("all files","*.*")]):
-  root = Tkinter.Tk()
-  root.withdraw()
-  root.overrideredirect(1)
-  root.attributes('-alpha', 0.0)
-  root.deiconify()
-  root.lift()
-  root.focus_force()
-  thisFile = os.path.normpath(str(tkFileDialog.askopenfilename(initialdir = initialdir, title = message, filetypes = filetypes)))
-  root.destroy()
-  return thisFile
-
-
-def save_file(message, initialdir = "/"):
-  root = Tkinter.Tk()
-  root.withdraw()
-  root.overrideredirect(1)
-  root.attributes('-alpha', 0.0)
-  root.deiconify()
-  root.lift()
-  root.focus_force()
-  thisFile = tkFileDialog.asksaveasfile(initialdir = initialdir, title = message, mode='w',defaultextension=".shp")
-  root.destroy()
-  fileName = os.path.normpath(str(thisFile.name))
-  thisFile.close()
-  os.remove(fileName)
-  return fileName
-
-
-def get_delta(vertVals):
-  segStartVal = vertVals[:-1]
-  segEndVal = vertVals[1:]
-  segDelta = segEndVal - segStartVal
-  return segDelta
-
-
-def make_vrt(chunkFiles, vrtFile):
-  listFile = vrtFile.replace('.vrt', '_filelist.txt')
-  tileList = open(listFile, 'w')
-  for fn in chunkFiles:
-    tileList.write(fn+'\n')
-  tileList.close()
-  
-  cmd = 'gdalbuildvrt -q -input_file_list '+listFile+' '+vrtFile
-  subprocess.call(cmd, shell=True)
-  
-
-def add_field(layer, fieldName, dtype):
-  field = ogr.FieldDefn(fieldName, dtype)
-  layer.CreateField(field)
-  return layer
-
-
-def year_to_band(bname, adj):
-  info = get_info(bname)
-  startYear = info['startYear'] + adj
-  endYear = info['endYear']
-  nYears = (endYear - startYear)+1
-  yearIndex = np.array([0]*(startYear)+list(range(1, nYears+1)))
-  return yearIndex
-
-
-def update_progress(progress, space='     '):
-  sys.stdout.write( '\r'+space+'{0}% {1}'.format(int(math.floor(progress*100)), 'done'))
-  sys.stdout.flush()
-  
-  
-def zonal_stats(feat, input_zone_polygon, input_value_raster, band): #, raster_band
-
-  # Open data
-  raster = gdal.Open(input_value_raster)
-  shp = ogr.Open(input_zone_polygon)
-  lyr = shp.GetLayer()
-  
-  # Get raster georeference info
-  transform = raster.GetGeoTransform()
-  xOrigin = transform[0]
-  yOrigin = transform[3]
-  pixelWidth = transform[1]
-  pixelHeight = transform[5]
-  
-  # Reproject vector geometry to same projection as raster
-  #sourceSR = lyr.GetSpatialRef()
-  #targetSR = osr.SpatialReference()
-  #targetSR.ImportFromWkt(raster.GetProjectionRef())
-  #coordTrans = osr.CoordinateTransformation(sourceSR,targetSR)
-  #feat = lyr.GetNextFeature()
-  #geom = feat.GetGeometryRef()
-  #geom.Transform(coordTrans)
-  
-  # Get extent of feat
-  geom = feat.GetGeometryRef()
-  if (geom.GetGeometryName() == 'MULTIPOLYGON'):
-    count = 0
-    pointsX = []; pointsY = []
-    for polygon in geom:
-      geomInner = geom.GetGeometryRef(count)
-      ring = geomInner.GetGeometryRef(0)
-      numpoints = ring.GetPointCount()
-      for p in range(numpoints):
-        lon, lat, z = ring.GetPoint(p)
-        pointsX.append(lon)
-        pointsY.append(lat)
-      count += 1
-  elif (geom.GetGeometryName() == 'POLYGON'):
-    ring = geom.GetGeometryRef(0)
-    numpoints = ring.GetPointCount()
-    pointsX = []; pointsY = []
-    for p in range(numpoints):
-      lon, lat, z = ring.GetPoint(p)
-      pointsX.append(lon)
-      pointsY.append(lat)
-
+  # format the metadata file
+  ltMeta = glob(os.path.join(chunkDir,'*'+runName+'*runInfo.csv'))
+  if len(ltMeta) != 0:
+    ltMetaOut = os.path.join(headDir, runName+'-runInfo.txt')
+    if not os.path.exists(ltMetaOut):
+      ltcdb.save_metadata(ltMeta[0], ltMetaOut)
   else:
-    sys.exit("ERROR: Geometry needs to be either Polygon or Multipolygon")
-
-  xmin = min(pointsX)
-  xmax = max(pointsX)
-  ymin = min(pointsY)
-  ymax = max(pointsY)
-
-  # Specify offset and rows and columns to read
-  xoff = int((xmin - xOrigin)/pixelWidth)
-  yoff = int((yOrigin - ymax)/pixelWidth)
-  xcount = int((xmax - xmin)/pixelWidth) #+1 !!!!!!!!!!!!!!!!!!!!! This adds a pixel to the right side
-  ycount = int((ymax - ymin)/pixelWidth) #+1 !!!!!!!!!!!!!!!!!!!!! This adds a pixel to the bottom side
+    sys.exit('ERROR: Can\'t find the metadata file that is suppose to be with the data downloaded from Google Drive')
   
-  #print(xoff, yoff, xcount, ycount)
-              
-  # Create memory target raster
-  target_ds = gdal.GetDriverByName('MEM').Create('', xcount, ycount, 1, gdal.GDT_Byte)
-  target_ds.SetGeoTransform((
-    xmin, pixelWidth, 0,
-    ymax, 0, pixelHeight,
-  ))
-
-  # Create for target raster the same projection as for the value raster
-  raster_srs = osr.SpatialReference()
-  raster_srs.ImportFromWkt(raster.GetProjectionRef())
-  target_ds.SetProjection(raster_srs.ExportToWkt())
-
-  # Rasterize zone polygon to raster
-  gdal.RasterizeLayer(target_ds, [1], lyr, burn_values=[1])
-
-  # Read raster as arrays
-  dataBandRaster = raster.GetRasterBand(band)
-  data = dataBandRaster.ReadAsArray(xoff, yoff, xcount, ycount).astype(np.float)
-  bandmask = target_ds.GetRasterBand(1)
-  datamask = bandmask.ReadAsArray(0, 0, xcount, ycount).astype(np.float)
-
-  # data zone of raster
-  dataZone = np.ma.masked_array(data,  np.logical_not(datamask))
-
-  raster_srs = None
-  raster = None
-  shp = None
-  lyr = None
-  # Calculate statistics of zonal raster
-  return int(round(np.mean(dataZone))),int(round(np.std(dataZone)))
-
-
-def dir_path(headDir, path):
-  dirs = {
-    'ts':os.path.join(headDir, 'timesync'),
-    'tsR':os.path.join(headDir, 'timesync', 'raster'),
-    'tsP':os.path.join(headDir, 'timesync', 'prep'),
-    'tsV':os.path.join(headDir, 'timesync', 'vector'),
-    'vid':os.path.join(headDir, 'video'),
-    'r':os.path.join(headDir, 'raster'),
-    'v':os.path.join(headDir, 'vector'),
-    's':os.path.join(headDir, 'scripts'),
-    'rP':os.path.join(headDir, 'raster', 'prep'),
-    'rPg':os.path.join(headDir, 'raster', 'prep', 'gee_chunks'),            
-    'rL':os.path.join(headDir, 'raster', 'landtrendr'),
-    'rLs':os.path.join(headDir, 'raster', 'landtrendr', 'segmentation'),
-    'rLc':os.path.join(headDir, 'raster', 'landtrendr', 'change')
-  }
+  # make a master vrt
+  masterVrtFile = os.path.normpath(os.path.join(thisOutDirPrep, runName+'.vrt'))
+  ltcdb.make_vrt(matches, masterVrtFile)
   
-  if path == 'all':
-    out=list(dirs.values())
-    #out = [os.path.normpath(value) for key, value in dirs.iteritems()]
-  else:    
-    out = os.path.normpath(dirs[path])
-  return out
+  # define the list of replacement types in the new out images    
+  outTypes = ['vert_yrs.tif',
+              'vert_fit_idx.tif',
+              'seg_rmse.tif',        
+              'ftv_tcb.tif',
+              'ftv_tcg.tif',
+              'ftv_tcw.tif']
 
-def is_headDir(headDir):
-  if headDir == '.':
-    sys.exit()
-  test = dir_path(headDir, 'rLs')
-  if not os.path.isdir(test):
-    sys.exit('ERROR: The selected folder does not appear to be an LT-ChangeDB project head folder.\nPlease re-run the script and select an LT-ChangeDB project head folder.')
-
-def is_success(cmdFailed):
-  if cmdFailed:
-    sys.exit('\nERROR: A command sent to an external program has failed.\nThe program may have printed a message above, please address the issue and re-run this script.')
-
-
-def save_metadata(inFile, outFile):
-  df = pd.read_csv(inFile).iloc[:, 1:-1]
-  df = pd.DataFrame.transpose(df)
-  labels = [i+':' for i in df.index]
-  df.index = labels
-  df.to_csv(outFile, ' ', header=False)
-
-def calc_delta(ftvFile, deltaFile):
-  srcFtv = gdal.Open(ftvFile)
-  srcDelta = gdal.Open(deltaFile, 1)
-  nBands = srcFtv.RasterCount
-  noDataMask = np.where(srcFtv.GetRasterBand(1).ReadAsArray() == -9999)
+  # make a list of band ranges for each out type
+  vertStops = []
+  for vertType in range(3): #4  
+    vertStops.append(vertType*info['nVert']+1)
   
-  for b in range(0,nBands):     
-    if b == 0:
-      former = srcFtv.GetRasterBand(1).ReadAsArray()
-      latter = former 
-      delta = np.subtract(latter, former)
+  rmseStops = [vertStops[-1]+1]
+  
+  nYears = (info['endYear'] - info['startYear']) + 1
+  ftvStops = []  
+  for ftvType in range(1,len(outTypes)-2):  
+    ftvStops.append(ftvType*nYears+rmseStops[0])
+    
+  bandStops = vertStops+rmseStops+ftvStops
+  bandRanges = [range(bandStops[i],bandStops[i+1]) for i in range(len(bandStops)-1)]
+
+
+  # set some size variables
+  srcVrt = gdal.Open(masterVrtFile)
+  xSize = srcVrt.RasterXSize
+  ySize = srcVrt.RasterYSize
+  blockSize = 512
+  srcVrt = None
+
+  
+  # loop through the datasets and pull them out of the mega stack and write them to the define outDir
+  print('   Unpacking file:')
+  for i in range(len(outTypes)):
+    print('      '+runName+'-'+outTypes[i])
+    block = 0
+    for y in range(0, ySize, blockSize):
+      #yRange = range(0, ySize, blockSize)
+      #y=yRange[5]
+      if y + blockSize < ySize:
+        rows = blockSize
+      else:
+        rows = ySize - y
+      for x in range(0, xSize, blockSize):
+        #xRange = range(0, xSize, blockSize)
+        #x=xRange[4]
+        if x + blockSize < xSize:
+          cols = blockSize
+        else:
+          cols = xSize - x  
+        
+        outBname = runName+'-'+ str(block).zfill(3)+'_'+outTypes[i]
+        outFileBlock = os.path.normpath(os.path.join(thisOutDirPrep, outBname))
+        bands = ' -b '+' -b '.join([str(band) for band in bandRanges[i]])
+        win = '{0} {1} {2} {3}'.format(x, y, blockSize, blockSize)
+        cmd = 'gdal_translate -q -of GTiff -a_srs ' + proj + ' -srcwin '+ win + ' ' + bands +' '+ masterVrtFile + ' ' + outFileBlock #
+        cmdFailed = subprocess.call(cmd, shell=True)
+        ltcdb.is_success(cmdFailed)
+        
+        block += 1
+
+    blockFiles = glob(thisOutDirPrep+'/*'+outTypes[i])
+    # TODO deal with not finding files 
+    
+    # create vrt
+    outTypeVrtFile = os.path.normpath(os.path.join(thisOutDirPrep, runName+'-'+outTypes[i])).replace('.tif', '.vrt')
+    ltcdb.make_vrt(blockFiles, outTypeVrtFile)
+    
+    # make the merged file
+    # read in the inShape file and get the extent
+    driver = ogr.GetDriverByName('ESRI Shapefile')
+    inDataSource = driver.Open(outShpFile, 0)
+    extent = inDataSource.GetLayer().GetExtent()
+    projwin = '{} {} {} {}'.format(extent[0], extent[3], extent[1], extent[2])  
+    inDataSource = None
+    extent = None
+  
+    outFile = os.path.normpath(os.path.join(thisOutDir, runName+'-'+outTypes[i]))
+    cmd = 'gdal_translate -q -of GTiff -a_nodata -9999 -a_srs ' + proj + ' -projwin ' + projwin + ' ' + outTypeVrtFile + ' ' + outFile #
+    cmdFailed = subprocess.call(cmd, shell=True)
+    ltcdb.is_success(cmdFailed)
+
+    # make background values -9999
+    nBands = gdal.Open(outFile).RasterCount
+    bands = ' '.join(['-b '+str(band) for band in range(1,nBands+1)])
+    cmd = 'gdal_rasterize -q -i -burn -9999 '+bands+' '+outShpFile+' '+outFile
+    cmdFailed = subprocess.call(cmd, shell=True)
+    ltcdb.is_success(cmdFailed)
+
+    # clear the dir for the next data
+    deleteThese = glob(thisOutDirPrep+'/*'+os.path.splitext(outTypes[i])[0]+'*')
+    for this in deleteThese:
+      os.remove(this)
+
+  # clear the dir for the next data
+  deleteThese = glob(thisOutDirPrep+'/*')
+  for this in deleteThese:
+    os.remove(this)
+
+  # unpack the clear pixel file
+  clearPixelData = glob(os.path.join(chunkDir,'*'+runName+'*ClearPixelCount*.tif'))
+  if len(clearPixelData) != 0:
+    outFile = os.path.normpath(os.path.join(thisOutDir, runName+'-clear_pixel_count.tif'))
+    print('   Unpacking file: ')
+    print('      '+os.path.basename(outFile))
+    vrtFile = os.path.normpath(os.path.join(thisOutDirPrep, runName+'-clear_pixel_count.vrt')) #outFile.replace('.tif', '.vrt') #
+    ltcdb.make_vrt(clearPixelData, vrtFile)
+    cmd = 'gdal_translate -q -of GTiff -a_nodata -9999 -a_srs ' + proj + ' -projwin ' + projwin + ' ' + vrtFile + ' ' + outFile #
+    cmdFailed = subprocess.call(cmd, shell=True)
+    ltcdb.is_success(cmdFailed)
+
+    # make background values -9999
+    nBands = gdal.Open(outFile).RasterCount
+    bands = ' '.join(['-b '+str(band) for band in range(1,nBands+1)])
+    cmd = 'gdal_rasterize -q -i -burn -9999 '+bands+' '+outShpFile+' '+outFile
+    cmdFailed = subprocess.call(cmd, shell=True)
+    ltcdb.is_success(cmdFailed)
+
+    # clear the dir for the next data
+    deleteThese = glob(thisOutDirPrep+'/*')
+    for this in deleteThese:
+      os.remove(this)
+
+
+
+  # find the vert_yrs file as a template
+  vertYrsFile = glob(os.path.join(thisOutDir,'*vert_yrs.tif'))
+  if len(vertYrsFile) == 0:
+    sys.exit('\nERROR: Can\'t find *vert_yrs.tif files in this dir: '+thisOutDir)
+  vertYrsFile = vertYrsFile[0]
+
+  ##########################################################################################################
+  ######## MAKE THE *delta.tif FILES
+  ##########################################################################################################
+
+  # make names for the delta tc files
+  ftvTCBfitDeltaFile = vertYrsFile.replace('vert_yrs.tif', 'ftv_tcb_delta.tif')
+  ftvTCGfitDeltaFile = vertYrsFile.replace('vert_yrs.tif', 'ftv_tcg_delta.tif')
+  ftvTCWfitDeltaFile = vertYrsFile.replace('vert_yrs.tif', 'ftv_tcw_delta.tif')
+  outPutsDelta = [ftvTCBfitDeltaFile, ftvTCGfitDeltaFile, ftvTCWfitDeltaFile]
+  
+  # get the names of the ftv files
+  ftvTCBfitFile = vertYrsFile.replace('vert_yrs.tif', 'ftv_tcb.tif')
+  ftvTCGfitFile = vertYrsFile.replace('vert_yrs.tif', 'ftv_tcg.tif')
+  ftvTCWfitFile = vertYrsFile.replace('vert_yrs.tif', 'ftv_tcw.tif')
+
+  # make copies of ftv files for writing delta to
+  for outPutDelta in outPutsDelta:
+    copyfile(ftvTCBfitFile, outPutDelta)
+  
+  print('   Creating TC ftv delta data')
+  print('      '+os.path.basename(ftvTCBfitDeltaFile))
+  ltcdb.calc_delta(ftvTCBfitFile, ftvTCBfitDeltaFile)
+  print('      '+os.path.basename(ftvTCGfitDeltaFile))
+  ltcdb.calc_delta(ftvTCGfitFile, ftvTCGfitDeltaFile)
+  print('      '+os.path.basename(ftvTCWfitDeltaFile))
+  ltcdb.calc_delta(ftvTCWfitFile, ftvTCWfitDeltaFile)
+  
+  ##########################################################################################################
+  ######## MAKE THE vert_fit_tc* FILES
+  ##########################################################################################################
+  print('   Creating TC vert_fit data')
+   
+  # make a copy of vert files for tc vals
+  vertTCBfitFile = vertYrsFile.replace('vert_yrs.tif', 'vert_fit_tcb.tif')
+  vertTCGfitFile = vertYrsFile.replace('vert_yrs.tif', 'vert_fit_tcg.tif')
+  vertTCWfitFile = vertYrsFile.replace('vert_yrs.tif', 'vert_fit_tcw.tif')
+  outPuts = [vertTCBfitFile, vertTCGfitFile, vertTCWfitFile]
+  
+  #ltcdb.make_output_blanks(vertYrsFile, outPuts, 0)
+  for outPut in outPuts:
+    copyfile(vertYrsFile, outPut)
+  
+  
+  # open the output files for update
+  dstTCB = gdal.Open(vertTCBfitFile, gdal.GA_Update)
+  dstTCG = gdal.Open(vertTCGfitFile, gdal.GA_Update)
+  dstTCW = gdal.Open(vertTCWfitFile, gdal.GA_Update)
+  
+  # open the vertYrs file for read - so w eknow what years to pull out of the TC FTV stacks
+  srcYrs = gdal.Open(vertYrsFile, gdal.GA_ReadOnly)
+  
+  # read in the TC FTV stacks (all years)  
+  srcFtvTCB = gdal.Open(ftvTCBfitFile, gdal.GA_ReadOnly)
+  srcFtvTCG = gdal.Open(ftvTCGfitFile, gdal.GA_ReadOnly)
+  srcFtvTCW = gdal.Open(ftvTCWfitFile, gdal.GA_ReadOnly)
+  
+  ##############################################################################
+  
+  
+  # set some size variables
+  ftvIndex =  ltcdb.year_to_band(os.path.basename(vertYrsFile), 1) #TODO: make sure that the offset is correct here - compared the old and new year_to_band functions results and using adj 1 makes them equal, so should be okay, but look at actual numbers
+  xSize = srcYrs.RasterXSize
+  ySize = srcYrs.RasterYSize
+  blockSize = 256
+  
+  # get info to print progress
+  nBlocks = 0
+  nBlock = 0
+  for y in range(0, ySize, blockSize):
+    for x in range(0, xSize, blockSize):
+      nBlocks += 1
+  
+  
+  ##############################################################################
+  
+  for y in range(0, ySize, blockSize):
+    #yRange = range(0, ySize, blockSize)
+    #y=yRange[4]
+    if y + blockSize < ySize:
+      rows = blockSize
     else:
-      former = srcFtv.GetRasterBand(b).ReadAsArray()
-      latter = srcFtv.GetRasterBand(b+1).ReadAsArray() 
-      delta = np.subtract(latter, former)
+      rows = ySize - y
+    for x in range(0, xSize, blockSize):
+      #xRange = range(0, xSize, blockSize)
+      #x=xRange[4]
+      if x + blockSize < xSize:
+        cols = blockSize
+      else:
+        cols = xSize - x
       
-    delta[noDataMask] = -9999  
-    outBand = srcDelta.GetRasterBand(b+1)
-    outBand.SetNoDataValue(-9999)
-    outBand.WriteArray(delta)
-  
-  srcFtv = None
-  srcDelta = None
+      
+      # print progress
+      nBlock += 1.0
+      progress = (nBlock)/nBlocks
+      ltcdb.update_progress(progress, '      ')
+      
+      
+      npYrs = srcYrs.ReadAsArray(x, y, cols, rows)
+         
+      npOutTCB = dstTCB.ReadAsArray(x, y, cols, rows)
+      npOutTCG = dstTCG.ReadAsArray(x, y, cols, rows)
+      npOutTCW = dstTCW.ReadAsArray(x, y, cols, rows)
+      
+      npFtvTCB = srcFtvTCB.ReadAsArray(x, y, cols, rows)
+      npFtvTCG = srcFtvTCG.ReadAsArray(x, y, cols, rows)
+      npFtvTCW = srcFtvTCW.ReadAsArray(x, y, cols, rows)
+      
+      nVerts, subYsize, subXsize = npYrs.shape
+      for subY in range(subYsize):
+        #subY = 0
+        #progress = (y+1.0)/ySize
+        #update_progress(progress)    
+        for subX in range(subXsize):
+          #subX = 0
+          vertYrsPix = npYrs[:, subY, subX]
+          
+          # check to see if this is a NoData pixel    
+          if (vertYrsPix == -9999).all():   #0
+            continue
+          
+          vertIndex = vertYrsPix[np.where(vertYrsPix != 0)[0]]
+          theseBands = ftvIndex[vertIndex]
+          replaceThese = range(len(theseBands))
+          npOutTCB[replaceThese, subY, subX] = npFtvTCB[theseBands, subY, subX]
+          npOutTCG[replaceThese, subY, subX] = npFtvTCG[theseBands, subY, subX]
+          npOutTCW[replaceThese, subY, subX] = npFtvTCW[theseBands, subY, subX]
+          
+        for b in range(nVerts):
+          ltcdb.write_array(dstTCB, b, npOutTCB, x, y)
+          ltcdb.write_array(dstTCG, b, npOutTCG, x, y)
+          ltcdb.write_array(dstTCW, b, npOutTCW, x, y)
+        
+  # close the output files
+  dstTCB = None
+  dstTCG = None
+  dstTCW = None
+  srcYrs = None
+  srcFtvTCB = None
+  srcFtvTCG = None
+  srcFtvTCW = None
 
-  
-  
-def get_dur(vertYrs):
-  segStartYr = vertYrs[:-1]
-  segEndYr = vertYrs[1:]
-  segDur = segEndYr - segStartYr
-  return segDur  
-  
-def collapse_segs(vertYrs, npFitIDX, thresh):
-  vertIndex = np.where(vertYrs != 0)[0]
-  if len(vertIndex) > 2:
-    check = True
-    while check:
-      vertYrsTemp = vertYrs[vertIndex]
-      vertValsIDXTemp = npFitIDX[vertIndex]
-      segMagIDXTemp = get_delta(vertValsIDXTemp).astype(float) 
-      segDurTemp = get_dur(vertYrsTemp).astype(float) 
-      slope = np.divide(segMagIDXTemp, segDurTemp)
-      checkLen = len(segMagIDXTemp)-1
-      for i in range(checkLen):
-        if np.sign(slope[i]) == np.sign(slope[i+1]):  # -1, 0, 1
-          dif = abs(abs(slope[i] - slope[i+1])/((slope[i] + slope[i+1])/2.0))
-          if dif < thresh:
-            #print('        collapse')
-            vertIndex = np.delete(vertIndex, i+1)
-            break
-      if i == checkLen-1:
-        check = False
-  return(vertIndex)
+print('\nDone!')      
+print("LT-GEE data unpacking took {} minutes".format(round((time.time() - startTime)/60, 1)))
+    
+      

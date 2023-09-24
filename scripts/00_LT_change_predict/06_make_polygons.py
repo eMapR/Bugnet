@@ -23,6 +23,8 @@ import ltcdb
 # get the head folder
 #headDir = ltcdb.get_dir("Select the project head folder", scriptDname)
 headDir = config.param['path']
+mmu = config.param['mmu']
+connectedness = config.param['connectednesses']
 ltcdb.is_headDir(headDir)
 
 # get dir paths we need 
@@ -32,24 +34,24 @@ changeDir = ltcdb.dir_path(headDir, 'rLc')
 ltRunDirs = [os.path.join(changeDir, thisRunDir) for thisRunDir in os.listdir(changeDir)]
 ltRunDirsBase = [os.path.basename(thisRunDir) for thisRunDir in ltRunDirs]
 
-print('\nHere is the list of raster change definitions:')
-for i, thisOne in enumerate(ltRunDirsBase):
-  print(str(i+1)+': '+thisOne)
+#print('\nHere is the list of raster change definitions:')
+#for i, thisOne in enumerate(ltRunDirsBase):
+#  print(str(i+1)+': '+thisOne)
 
-changeDirIndexGood = 0
-while changeDirIndexGood is 0:
-  changeDirIndex = raw_input('\nWhich one would you like to convert to polygons (enter the number): ')
-  try:
-    changeDirIndex = int(changeDirIndex)
-    changeDirIndex -= 1
-    changeDirIndexGood = 1
-    if changeDirIndex not in range(len(ltRunDirsBase)):
-      print('\nERROR: The selected value is outside the valid range.')
-      print('       Please try again and make sure to enter a valid selection.')
-      changeDirIndexGood = 0
-  except ValueError: 
-    print('\nERROR: The selected value cannot be converted to an integer.')
-    print('       Please try again and make sure to enter a number.')
+#changeDirIndexGood = 0
+#while changeDirIndexGood is 0:
+#  changeDirIndex = input('\nWhich one would you like to convert to polygons (enter the number): ')
+#  try:
+#    changeDirIndex = int(changeDirIndex)
+#    changeDirIndex -= 1
+#    changeDirIndexGood = 1
+#    if changeDirIndex not in range(len(ltRunDirsBase)):
+#      print('\nERROR: The selected value is outside the valid range.')
+#      print('       Please try again and make sure to enter a valid selection.')
+#      changeDirIndexGood = 0
+#  except ValueError: 
+#    print('\nERROR: The selected value cannot be converted to an integer.')
+#    print('       Please try again and make sure to enter a number.')
 
 
 
@@ -69,40 +71,41 @@ if len(changeDir.split('-')) is not 6:
            'Please re-run the script and select a different folder.')
 """
 
-ltRunDirs = [ltRunDirs[changeDirIndex]]
+ltRunDirs = [ltRunDirs[0]]
 mmus = []
-for changeDir in ltRunDirs:
+#for changeDir in ltRunDirs:
   # get the mmu
-  mmuGood = 0
-  while mmuGood is 0:
-    mmu = raw_input('\n\nRegarding raster change definition: '+os.path.basename(changeDir) + '\nWhat is the desired minimum mapping unit in pixels per patch: ')
-    try:
-      mmu = int(mmu)
-      mmuGood = 1
-    except ValueError: 
-      print('\nERROR: The selected value cannot be converted to an integer.')
-      print('       Please try again and make sure to enter a number.')
-  
-  mmus.append(mmu)
+#  mmuGood = 0
+#  while mmuGood is 0:
+#    mmu = input('\n\nRegarding raster change definition: '+os.path.basename(changeDir) + '\nWhat is the desired minimum mapping unit in pixels per patch: ')
+#    try:
+#      mmu = int(mmu)
+#      mmuGood = 1
+#    except ValueError: 
+#      print('\nERROR: The selected value cannot be converted to an integer.')
+#      print('       Please try again and make sure to enter a number.')
+#  
+mmus.append(mmu[0])
 
 
 
     
 # get the connected
 connectednesses = []
-for changeDir in ltRunDirs:
-  connectednessGood = 0
-  while connectednessGood is 0:
-    connectedness = raw_input('\n\nRegarding raster change definition: '+os.path.basename(changeDir) + '\nShould diagonal adjacency warrant pixel inclusion in patches? - yes or no: ').lower().strip()
-    if connectedness not in ['yes', 'no']:
-      print('\nERROR: The given entry was not yes or no.')
-      print('       Please type either: yes or no.\n')
-    else:
-      if connectedness == 'yes':
-        connectedness = 8
-      else:
-        connectedness = 4
-      connectednessGood = 1
+#for changeDir in ltRunDirs:
+#  connectednessGood = 0
+#  while connectednessGood is 0:
+#    connectedness = input('\n\nRegarding raster change definition: '+os.path.basename(changeDir) + '\nShould diagonal adjacency warrant pixel inclusion in patches? - yes or no: ').lower().strip()
+#    if connectedness not in ['yes', 'no']:
+#      print('\nERROR: The given entry was not yes or no.')
+#      print('       Please type either: yes or no.\n')
+#    else:
+if connectedness == 'yes':
+  connectedness = 8
+  connectednesses.append(connectedness) 
+else:
+  connectedness = 4
+  #connectednessGood = 1
   connectednesses.append(connectedness) 
 
 

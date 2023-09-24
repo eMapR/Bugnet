@@ -55,35 +55,35 @@ def get_info(name, eeFile=False):
   pieces = name.split('-')
   if eeFile:
     print(pieces)
-    pieces = pieces[0:8] #8
-    crs = pieces[7]
+    pieces = pieces[0:7] #8
+    crs = pieces[5]
     crs = crs[0:4]+':'+crs[4:]
     #del pieces[7]
-    info = {'key': pieces[0],
-            'value': pieces[1],
-            'indexID': pieces[2], #2
-            'nVert': int(pieces[3]), #3
-            'startYear':int(pieces[4][0:4]),#4
-            'endYear':int(pieces[4][4:8]),#4
-            'startDay':pieces[5][0:4],#5
-            'endDay':pieces[5][4:8],#5
+    info = {#'key': pieces[0],
+            #'value': pieces[1],
+            'indexID': pieces[0], #2
+            'nVert': int(pieces[1]), #3
+            'startYear':int(pieces[2][0:4]),#4
+            'endYear':int(pieces[2][4:8]),#4
+            'startDay':pieces[3][0:4],#5
+            'endDay':pieces[3][4:8],#5
             'crs':crs,
-            'version':pieces[6],#6
+            'version':pieces[4],#6
             'name': '-'.join(pieces[:-2])}
   else:
     print(pieces)
     pieces = pieces[0:8]
     #crs = pieces[7]
     #crs = crs[0:4]+':'+crs[4:]
-    info = {'key': pieces[0],
-            'value': pieces[1],
-            'indexID': pieces[2],
-            'nVert': int(pieces[3]),
-            'startYear':int(pieces[4][0:4]),
-            'endYear':int(pieces[4][4:8]),
-            'startDay':pieces[5][0:4],
-            'endDay':pieces[5][4:8],
-            'version':pieces[6],
+    info = {#'key': pieces[0],
+            #'value': pieces[1],
+            'indexID': pieces[0],
+            'nVert': int(pieces[1]),
+            'startYear':int(pieces[2][0:4]),
+            'endYear':int(pieces[2][4:8]),
+            'startDay':pieces[3][0:4],
+            'endDay':pieces[3][4:8],
+            'version':pieces[4],
             #'crs':crs,
             'name': '-'.join(pieces[2:])}
   return info

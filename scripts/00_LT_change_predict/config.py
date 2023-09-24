@@ -1,5 +1,5 @@
 param=dict(
-	path=r"E:\v1\bugnet\workspace\Bugnet", # path to your project directory
+	path=r"E:\bugnet\workspace", # path to your project directory
     change_type = ['disturbance'],                  # What change do you want to map (disturbance or growth)?
     minMags = [100],                                # What is the desired minimum change magnitude:
     collapseEm = [0],                               # Consecutive change segment collapse threshold (0 to ignore)

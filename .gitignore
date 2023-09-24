@@ -1,3 +1,8 @@
 __pycache__/
 dated/
 *.pyc
+raster/
+vector/
+timesync/
+video/
+*.txt

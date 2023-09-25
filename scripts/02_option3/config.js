@@ -3,7 +3,7 @@ var param = {}
 param.configName = 'config_option3'
 
 // AOI 
-param.aoi = ee.FeatureCollection("users/clarype/bugnet_study_AOI") // Cast AOI
+param.aoi = ee.FeatureCollection("") // Cast AOI //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 // time parameters 
 param.ltstartYear = 1995;
@@ -19,7 +19,7 @@ param.index = "NBR"
 param.fit = ["NBR","TCG","TCW","TCB"]
 
 // ADS parameters
-param.ads = ee.FeatureCollection('projects/bugnet-364504/assets/ADS_R6_2010_2019_nofire_4326')
+param.ads = ee.FeatureCollection('') // <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 param.ads_damage = 30
 
 // file naming parameters 
@@ -27,8 +27,8 @@ param.version = 'v1'
 param.region = 'blueMts'
 
 // working directories  // if you area is spatialy large these should be different locations
-param.assetDir = "projects/bugnetbluemts/assets/" 
-param.LTSDdir = 'projects/bugnetbluemts/assets/'
+param.assetDir = ""  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+param.LTSDdir = "" //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 param.LTSDname = 'LTSD_'+param.target
 param.snicName = 'SNIC_'+param.configName+"_"+param.target

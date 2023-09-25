@@ -34,6 +34,7 @@ param.region = 'coastRange'
 param.assetDir = "projects/bugent-base-img/assets/"
 param.LTSDdir = 'projects/bugent-base-img/assets/' 
 
+// SNIC parameters 
 param.LTSDname = 'LTSD_'+param.configName+"_"+param.target
 param.snicName = 'SNIC_'+param.configName+"_"+param.target
 param.declineName = 'Decline_'+param.configName+"_"+param.target

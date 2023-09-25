@@ -34,6 +34,11 @@ param.LTSDname = 'LTSD_'+param.target
 param.snicName = 'SNIC_'+param.configName+"_"+param.target
 param.declineName = 'Decline_'+param.configName+"_"+param.target
 
+// SNIC parameters 
+param.LTSDname = 'LTSD_'+param.configName+"_"+param.target
+param.snicName = 'SNIC_'+param.configName+"_"+param.target
+param.declineName = 'Decline_'+param.configName+"_"+param.target
+
 // KMeans 
 param.kmeansName = 'KMeans_'+param.configName+"_"+param.target
 param.kmeans_num_sample = 5000

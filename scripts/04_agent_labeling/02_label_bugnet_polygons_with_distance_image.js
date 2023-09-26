@@ -4,7 +4,7 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 //bugent config file 
-var bnet = require('users/clarype/DNR_WA:option2/config_option2_2022.js')
+var bnet = require('users/emaprlab/bugnetBlueMts2023:config2.js')
 
 // assets 
 var bunget_polygons = ee.FeatureCollection(bnet.param.assetDir+bnet.param.bugnet_polygons),

@@ -1,9 +1,9 @@
 var param = {}
 // Config name
-param.configName = 'config_option3'
+param.configName = 'config_option2'
 
 // AOI 
-param.aoi = ee.FeatureCollection("") // Cast AOI //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+param.aoi = ee.FeatureCollection("users/clarype/bugnet_study_AOI") // Cast AOI //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 // time parameters 
 param.ltstartYear = 1995;
@@ -27,15 +27,13 @@ param.version = 'v1'
 param.region = 'blueMts'
 
 // working directories  // if you area is spatialy large these should be different locations
-param.assetDir = ""  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-param.LTSDdir = "" //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+param.assetDir = "projects/bugnetbluemts-400023/assets/"  //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+param.LTSDdir = "projects/bugnetbluemts-400023/assets/" //<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
+//LTSD name
 param.LTSDname = 'LTSD_'+param.target
-param.snicName = 'SNIC_'+param.configName+"_"+param.target
-param.declineName = 'Decline_'+param.configName+"_"+param.target
 
 // SNIC parameters 
-param.LTSDname = 'LTSD_'+param.configName+"_"+param.target
 param.snicName = 'SNIC_'+param.configName+"_"+param.target
 param.declineName = 'Decline_'+param.configName+"_"+param.target
 
@@ -53,7 +51,7 @@ param.predicted = 'labeled_'+param.configName+"_"+param.target
 
 
 //mask parameters 
-param.forestMaskName = 'bugnet_forest_mask_'+param.configName+"_"+param.target
+param.forestMaskName = 'bugnet_forest_mask_'+param.target
 param.maskThese = ['cloud','shadow'];
 param.Mask = ee.Image(param.assetDir+param.forestMaskName)
 param.ltchange = ee.FeatureCollection(param.assetDir+'change_attri')

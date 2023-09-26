@@ -1,8 +1,9 @@
 var mtbs = ee.FeatureCollection("USFS/GTAC/MTBS/burned_area_boundaries/v1")
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //bugnet module
-var bugnet = require('users/clarype/Bugnet_Blues_2023:bugnet.js'); 
-var bnet = require('users/clarype/Bugnet_Blues_2023:option3/config_option3.js')
+var bugnet = require('users/emaprlab/public:Modules/bugnet.js'); 
+//Configuation file
+var bnet = require('users/emaprlab/bugnetBlueMts2023:config2.js')
 
 print(bnet)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

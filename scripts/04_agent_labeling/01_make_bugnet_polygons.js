@@ -1,6 +1,6 @@
 //Convert Bugnet Rasters into polygons. 
 //bugent config file 
-var bnet = require('users/clarype/DNR_WA:option2/config_option2_2022.js')
+var bnet = require('users/emaprlab/bugnetBlueMts2023:config2.js')
 
 //bunget image
 var image = ee.Image(bnet.param.assetDir+bnet.param.predicted);

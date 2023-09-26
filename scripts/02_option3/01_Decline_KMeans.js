@@ -1,10 +1,9 @@
 // option 3 -- This program applies the KMeans clustering process on pixels decining with time.
 //////////////////////////////////////////////MOD ASSETS///////////////////////////////////////////////////////////////
 //bugnet module
-var bugnet = require('users/clarype/DNR_WA:/support/bugnet.js'); 
-
+var bugnet = require('users/emaprlab/public:Modules/bugnet.js'); 
 //Configuation file
-var bnet = require('users/clarype/DNR_WA:option2/config_option3_2022.js')
+var bnet = require('users/emaprlab/bugnetBlueMts2023:config2.js')
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // get reference image
 var ltsd_decline = ee.Image(bnet.param.assetDir+bnet.param.declineName)//.selfMask()

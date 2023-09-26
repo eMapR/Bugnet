@@ -2,9 +2,9 @@
 //LandTrendr module
 var ltgee = require('users/emaprlab/public:Modules/LandTrendr.js'); 
 //bugnet module
-var bugnet = require('users/clarype/DNR_WA:/support/bugnet.js'); 
+var bugnet = require('users/emaprlab/public:Modules/bugnet.js'); 
 //Configuation file
-var bnet = require('users/clarype/DNR_WA:option2_final/config_option2.js')
+var bnet = require('users/emaprlab/bugnetBlueMts2023:config2.js')
 ///////////////////////////////////////////////LANDTRENDR//////////////////////////////////////////////////////////////
 // this statement runs the LandTrendr algorthim on the give parameters set
 var lt = ltgee.runLT(bnet.param.ltstartYear,bnet.param.ltendYear,bnet.param.startDay,bnet.param.endDay,bnet.param.aoi,bnet.param.index,bnet.param.fit,bnet.param.runParams,bnet.param.maskThese);

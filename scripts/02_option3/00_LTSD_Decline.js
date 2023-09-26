@@ -3,10 +3,9 @@
 var ltgee = require('users/emaprlab/public:Modules/LandTrendr.js'); 
 
 //bugnet module
-var bugnet = require('users/clarype/DNR_WA:/support/bugnet.js'); 
-
+var bugnet = require('users/emaprlab/public:Modules/bugnet.js'); 
 //Configuation file
-var bnet = require('users/clarype/DNR_WA:option2/config_option3_2022.js')
+var bnet = require('users/emaprlab/bugnetBlueMts2023:config2.js')
 
 print(ee.Image(bnet.param.LTSD))
 //////////////////////////////////////////////LTSD SNIC DECLINE///////////////////////////////////////////////////////////////

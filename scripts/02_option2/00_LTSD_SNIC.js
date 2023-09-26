@@ -6,8 +6,8 @@ var bnet = require('users/clarype/DNR_WA:option2/config_option2_2022.js')
 print("_________LTSD TO SNIC__________")
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // get LTSD image
-print('Importing ltsd - LandTrendr Standardized Image', bnet.param.ltsdassetDir+bnet.param.LTSDname)
-var ltsd = ee.Image(bnet.param.ltsdassetDir+bnet.param.LTSDname)
+print('Importing ltsd - LandTrendr Standardized Image', bnet.param.LTSDdir+bnet.param.LTSDname)
+var ltsd = ee.Image(bnet.param.LTSDdir+bnet.param.LTSDname)
 print(ltsd)
 //////////////////////////////////////////////LTSD SNIC////////////////////////////////////////////////////////////////////
 // Generate a SNIC image from the LTSD image and then mask with non forest mask

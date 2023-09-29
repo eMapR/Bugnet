@@ -14,15 +14,10 @@
 # import mods
 
 import geopandas as gpd
-#import pandas as pd
 import glob
 import sys
 import os
 os.environ['GDAL_DATA'] = 'C:\\Users\\clarype\\AppData\\Local\\ESRI\\conda\\envs\\ltchange\\Library\\share\\gdal'
-#from multiprocessing import Pool
-#import json # or geojson
-#import numpy as np
-import functools
 import config
 # shp file path directory
 
@@ -97,7 +92,7 @@ def zonal_stat_operator(dir):
 #def main(inDir):
 if __name__ == "__main__":
         inDir = config.param['path']
-        print("start")
+        print("started")
         
         # makes a list of shp file paths. That is fed to the paraelell function
         shp_file_list = glob.glob(inDir+"\\vector\\change\\**\\*merged.shp") # this runs the risk of globing more than one directory
@@ -107,21 +102,13 @@ if __name__ == "__main__":
         if len(shp_file_list) == 0 :
                 print("Check 'shp_file_list' variable. The program is not finding files.")
                 sys.exit()
-
-
+                
         for i in shp_file_list:
                 c.append([i,inDir])
 
         if len(c) == 0 :
                 print("Check 'c' variable. The program is not finding files.")
                 sys.exit()
-        print(c)
-
-        # testing the function on a single file
-        #zonal_stat_operator(c[0])
-        # run the program in parrellel
-        #with Pool(10) as p:
-        #        p.map(zonal_stat_operator, c)
 
         for f in c:
                 zonal_stat_operator(f)

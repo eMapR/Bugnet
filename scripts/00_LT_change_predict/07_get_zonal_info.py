@@ -13,13 +13,55 @@
 
 # import mods
 
-import geopandas as gpd
+#import geopandas as gpd
 import glob
 import sys
 import os
-os.environ['GDAL_DATA'] = 'C:\\Users\\clarype\\AppData\\Local\\ESRI\\conda\\envs\\ltchange\\Library\\share\\gdal'
 import config
 # shp file path directory
+import time
+import arcpy
+import shutil
+import zipfile
+
+def copy_and_zip_change_files(source_folder):
+    try:
+        # Get the parent directory of the source folder
+        parent_dir = os.path.dirname(source_folder)
+        
+        # Create a new folder 'change_attri' at the same location
+        destination_folder = os.path.join(parent_dir, 'change_attri')
+        os.makedirs(destination_folder, exist_ok=True)
+        
+        # Traverse the source folder with a depth limit of 2
+        for root, _, files in os.walk(source_folder):
+            depth = root[len(source_folder):].count(os.sep)
+            
+            if depth <= 2:
+                for filename in files:
+                    if '_change_merged' in filename:
+                        print(filename)
+                        source_file = os.path.join(root, filename)
+                        destination_file = os.path.join(destination_folder, filename)
+                        try:
+                                shutil.copy2(source_file, destination_file)
+                        except:
+                                print(filename)
+        
+        # Create a zip file of the 'change_attri' folder
+        zip_filename = os.path.join(parent_dir, 'change_attri.zip')
+
+        with zipfile.ZipFile(zip_filename, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for root, _, files in os.walk(destination_folder):
+                for file in files:
+                    file_path = os.path.join(root, file)
+                    arcname = os.path.relpath(file_path, destination_folder)
+                    zipf.write(file_path, arcname=arcname)
+        
+        print(f"Files copied and zipped successfully to '{zip_filename}'")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
 
 
 #__________________________________________________________
@@ -87,6 +129,54 @@ def zonal_stat_operator(dir):
         print ('done ', shp)
         return 0
 
+def calculate_metrics(dir):
+    shapefile_path = dir[0]
+    # output directory path
+    outDir = dir[1]+"\\vector\\"
+        
+    try:
+        # Check out the ArcGIS Spatial Analyst extension
+        arcpy.CheckOutExtension("Spatial")
+
+        # Open the shapefile for editing
+        with arcpy.da.UpdateCursor(shapefile_path, ["SHAPE@", "Size", "Perimeter"]) as cursor:
+            # Check if the "Size" field exists, and if not, create it
+            fields = [field.name for field in arcpy.ListFields(shapefile_path)]
+            if "Size" not in fields:
+                arcpy.AddField_management(shapefile_path, "Size", "DOUBLE")
+
+            # Check if the "Perimeter" field exists, and if not, create it
+            if "Perimeter" not in fields:
+                arcpy.AddField_management(shapefile_path, "Perimeter", "DOUBLE")
+
+            for row in cursor:
+                # Get the geometry of the current feature
+                geometry = row[0]
+
+                # Calculate the area (size) of the polygon
+                size = geometry.area
+
+                # Calculate the perimeter of the polygon
+                perimeter = geometry.length
+
+                # Update the Size and Perimeter fields with calculated values
+                row[1] = size
+                row[2] = perimeter
+
+                cursor.updateRow(row)
+
+        # Check in the ArcGIS Spatial Analyst extension
+        arcpy.CheckInExtension("Spatial")
+
+        print("Metrics calculated and added as attributes successfully.")
+
+
+    
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
+
+
 	
 # main function
 #def main(inDir):
@@ -111,7 +201,12 @@ if __name__ == "__main__":
                 sys.exit()
 
         for f in c:
-                zonal_stat_operator(f)
+                #zonal_stat_operator(f)
+                calculate_metrics(f)
+                # Example usage:
+        arcpy.ClearWorkspaceCache_management() 
+        time.sleep(5)
+        copy_and_zip_change_files(inDir+"\\vector\\")
         print("done")
 # run main function 	
 #main(inDir)

@@ -42,7 +42,7 @@ var ads_teired_agents = tier_bounds.map(function(ele){
 });// LIST OF FEATURE COLLECTIONS. one for each agent group
 
 // generate a mask for ads locations. this makes sure that pixels that intersect ADS polygon have a value of zero.
-var ads_agent_img = ads_teired_agents.map(function(m){ return ee.FeatureCollection(m).reduceToImage(['DAMAGE_TYP'],ee.Reducer.mean()).unmask().not()})
+var ads_agent_img = ads_teired_agents.map(function(m){ return ee.FeatureCollection(m).reduceToImage(['DCA_CODE'],ee.Reducer.mean()).unmask().not()})
 ads_agent_img = ee.ImageCollection(ads_agent_img).toBands().rename(newNames)
 
 // map over each feature collection and create a distance raster. this raster will be used to get the distance value that will be attributed to bunget polygons.

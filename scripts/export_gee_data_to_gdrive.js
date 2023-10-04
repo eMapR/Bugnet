@@ -10,11 +10,12 @@ var ImageExportOptions = {
   folder: 'bugnet_GEE_exports', // Set the folder in your Google Drive where the exported file will be saved.
   scale: 30, // Set the scale (e.g., 30 meters for Landsat imagery).
   region: image.geometry(), // Set the region of interest.
+  maxPixels: 1e13
 };
 
 // Define the export parameters.
 var featureExportOptions = {
-  collection: image,  // Replace 'image' with 'featureCollection' if exporting a feature collection.
+  collection: featureCollection,  // Replace 'image' with 'featureCollection' if exporting a feature collection.
   description: 'bunget_polygons_opt2', // Set a name for the export task.
   folder: 'bugnet_GEE_exports', // Set the folder in your Google Drive where the exported file will be saved.
 };

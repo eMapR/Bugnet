@@ -49,7 +49,7 @@ ads_agent_img = ee.ImageCollection(ads_agent_img).toBands().rename(newNames)
 var distance_img = ads_teired_agents.map(function(ele){return ee.FeatureCollection(ele).distance(bnet.param.agent_distance,1).reproject({crs:"EPSG:3857",scale:30}).rename([ee.String(ee.Feature(ee.FeatureCollection(ele).first()).get('DCA_CODE')).slice(0,2).cat('000')])});//LIST OF RASTERS
 
 // change list of images to imagecollection then image >> rename the bands >> add ADS zeros >> reproject 
-var img_out = ee.ImageCollection(distance_img).toBands().rename(newNames).multiply(ads_agent_img).reproject({crs:"EPSG:3857",scale:30}).clip(aoi_region6).int16() 
+var img_out = ee.ImageCollection(distance_img).toBands().rename(newNames).multiply(ads_agent_img).reproject({crs:"EPSG:3857",scale:30}).clip(aoi_region6).int16().unmask(-9999)  
 
 //Export 
 Export.image.toAsset({image:img_out, description:bnet.param.bugnet_distance_img, assetId:bnet.param.assetDir+bnet.param.bugnet_distance_img,region:aoi_region6, scale:30,maxPixels:1e13})

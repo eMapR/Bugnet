@@ -9,6 +9,8 @@ var bnet = require('users/emaprlab/bugnetBlueMts2023:config2.js')
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 var ads_startYear = bnet.param.target-bnet.param.agent_lookback
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+var DCA_table = ee.Dictionary({11000:'BarkBeetles',12000:'Defoliators',14000:'SapFeeders',15000:'WoodBorers',17000:'Gallmakers',18000:'RootFeaders',21000:'RootDisease',22000:'Cankers',24000:'Wilts',25000:'ShootDisease',26000:'Rusts',30000:'Fire',41000:'WildAnimal',50000:'AbioticAgents',80000:'MultiAgent',90000:'Unkown'})
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // aoi - Region 6 Washington and Oregon
 var aoi_region6 = bnet.param.aoi
 var ads = bnet.param.ads.filter(ee.Filter.and(ee.Filter.gte('SURVEY_YEA',ads_startYear),ee.Filter.lte('SURVEY_YEA',bnet.param.target)))
@@ -29,7 +31,7 @@ var tier_ceiling = tiered_keys.map(function(ele){return ee.Number(ele).add(1000)
 var tier_bounds = tiered_keys.zip(tier_ceiling); // LIST of LISTs [[],[]]
 
 // generate list of new gruop agnet names
-var newNames = tiered_keys.map(function(ele){return ee.String("agent").cat(ee.String(ele))})
+var newNames = tiered_keys.map(function(ele){return DCA_table.get(ee.String(ele))})
 
 // filters ADS polygons by teir agent label by mapping over list of lists that contain the upper and lower bounds for filtering agent groups
 var ads_teired_agents = tier_bounds.map(function(ele){

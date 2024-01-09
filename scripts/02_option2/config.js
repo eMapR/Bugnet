@@ -54,6 +54,7 @@ param.predicted = 'labeled_'+param.configName+"_"+param.target
 param.forestMaskName = 'bugnet_forest_mask_'+param.target
 param.maskThese = ['cloud','shadow'];
 param.Mask = ee.Image(param.assetDir+param.forestMaskName)
+param.buffer = 50
 param.ltchange = ee.FeatureCollection(param.assetDir+'change_attri')
 
 

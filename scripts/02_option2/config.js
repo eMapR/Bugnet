@@ -7,7 +7,7 @@ param.aoi = ee.FeatureCollection("users/clarype/bugnet_study_AOI") // Cast AOI /
 
 // time parameters 
 param.ltstartYear = 1995;
-param.ltendYear = 2023; // this should not be the same as the target year and it need to be greater than the target year
+param.ltendYear = 2023; 
 param.target = 2023;
 param.startDay = "06-15";
 param.endDay = "08-15";
